@@ -1,0 +1,52 @@
+import pandas as pd
+#loading in my data 
+texts = pd.read_csv('C:/Users/luket/Downloads/messages.csv')
+#Going to look at the head of my data 
+texts.head()
+#Split features and labels 
+X = texts.drop(columns=['V1'])  
+y = texts['V1'].map({'ham': 0, 'spam': 1})
+#Splitting into my training and testing 
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+#Actually building the model 
+from tensorflow import keras
+from tensorflow.keras import layers
+
+model = keras.Sequential([
+    layers.Dense(32, activation="relu"),
+    layers.Dense(32, activation="relu"),
+    layers.Dense(1, activation="sigmoid")
+])
+model.compile(optimizer="rmsprop",
+              loss="binary_crossentropy",
+              metrics=["accuracy"])
+#Training the model 
+history = model.fit(X_train, y_train,
+                    epochs=20,
+                    batch_size=512,
+                    validation_data=(X_test, y_test))
+results = model.evaluate(X_test, y_test)
+results 
+#Going to do random guessing 
+import copy
+y_pred = model.predict(X_test).round()  
+#Creating a copy of the test labels (for random guessing comparison)
+test_labels_copy = y_test.copy()  
+test_labels_copy = test_labels_copy.to_numpy()  
+np.random.shuffle(test_labels_copy)  
+#Comparing the original test labels with the shuffled ones 
+hits_array = np.array(y_test) == test_labels_copy 
+#  Calculate the accuracy for random guessing
+random_guess_accuracy = hits_array.mean()
+print(f"Random Guessing Accuracy: {random_guess_accuracy}")
+#Printing the model's accuracy w
+model_accuracy = (y_pred.flatten() == y_test.to_numpy()).mean()  
+print(f"Model Accuracy: {model_accuracy}")
+
+
+
+
+
+
